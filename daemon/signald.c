@@ -7,17 +7,20 @@
 #include <sys/stat.h>
 #include <unistd.h>
 #include <fcntl.h>
+#include <sys/time.h>
+#include <sys/resource.h>
 
-void
+int
 daemonize()
 {
-  int i, fd0, fd1, fd2;
+  int i, fd0, fd1, fd2, log_fd;
   pid_t pid;
   struct rlimit rl;
   struct sigaction sa;
 
   umask(0);
 
+  log_fd = open("/home/gabrielm/signald.log", O_RDWR);
   if(getrlimit(RLIMIT_NOFILE, &rl) < 0) {
     printf("Unable to get file limit\n");
     abort();
@@ -48,10 +51,12 @@ daemonize()
   else if(pid != 0)
     exit(0);
 
+
   if(chdir("/") < 0) {
     printf("Chdir error\n");
     abort();
   }
+
 
   if(rl.rlim_max == RLIM_INFINITY)
     rl.rlim_max = 1024;
@@ -63,36 +68,37 @@ daemonize()
   fd1 = dup(0);
   fd2 = dup(0);
 
-  //logging here
+  dprintf(log_fd, "made it this far at least\n");
+  return log_fd;
 
 }
 
 int
 main(int argc, char **argv) {
   struct sigaction sa;
-  int wait, signo;
+  int wait, signo, log_fd;
   sigset_t mask;
 
-  daemonize();
+  log_fd = daemonize();
 
-  sigemptyset(&mask);
+  sigfillset(&mask);
 
   for(;;) {
     wait = sigwait(&mask, &signo);
     if(wait != 0)
-      //log wait fail
       exit(0);
     switch(signo) {
       case SIGHUP:
-        //log sighup recevied
+        dprintf(log_fd, "Received SIGHUP\n");
       case SIGTERM:
-        //log term and exit
+        dprintf(log_fd, "Received SIGTERM\n");
       case SIGUSR1:
-        //log SIGUSR1
+        dprintf(log_fd, "Received SIGUSR1\n");
       default:
-        //log uncaught signal
+        dprintf(log_fd, "Received unsupported signal\n");
         break;
     }
   }
+  close(log_fd);
   exit(0);
 }
