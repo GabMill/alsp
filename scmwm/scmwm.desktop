@@ -1,0 +1,11 @@
+[Desktop Entry]
+Encoding=UTF-8
+Name=scmwm
+Comment=Shippey, Crljenica, and Miller's window manager.
+Exec=/usr/bin/scmwm-session
+Terminal=False
+TryExec=/usr/bin/scmwm
+Type=Application
+
+[Window Manager]
+SessionManaged=true

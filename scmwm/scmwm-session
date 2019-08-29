@@ -1,0 +1,5 @@
+#! /bin/bash
+xsetroot -solid "#FFFFFF"
+xrdb -load $HOME/.Xdefaults
+exec /usr/bin/scmwm
+
